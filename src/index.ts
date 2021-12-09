@@ -1,14 +1,26 @@
 import { Bot } from "grammy";
 import parseTime from "human-interval";
+import parseMs from "parse-ms";
 
-import { TOKEN } from "./config";
+import { TOKEN } from "./config.js";
 
 const bot = new Bot(TOKEN);
 
-const test =
+const pattern =
   /^!remindme\s(\d{1,5}(\.\d{1,3})?\s?(s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days)\s?)+$/;
 
-bot.hears(test, async (ctx) => {
+const convertTime = (num: number) => {
+  const t = parseMs(num);
+
+  const k = `${t.days ? `${t.days} day(s) ` : ""}${
+    t.hours ? `${t.hours} hour(s) ` : ""
+  }${t.minutes ? `${t.minutes} minute(s) ` : ""}${
+    t.seconds ? `${t.seconds} second(s) ` : ""
+  }`;
+  return k;
+};
+
+bot.hears(pattern, async (ctx) => {
   if (!ctx.message?.text) return;
   if (!ctx.message.from?.username) return;
   if (!ctx.message.reply_to_message?.message_id) {
@@ -22,14 +34,17 @@ bot.hears(test, async (ctx) => {
   const rawTime = ctx.message.text
     .substring(10)
     .replace(/d/g, "day")
-    .replace(/\s+?(m|min)/g, " minute")
-    .replace(/\s+?(s|sec)/g, " second")
-    .replace(/\s+?(h|hr)/g, " hour");
+    .replace(/m|min/g, "minute")
+    .replace(/s|sec/g, "second")
+    .replace(/h|hr/g, "hour");
   const time = parseTime(rawTime);
   if (!time) return;
-  const message = await ctx.reply(`Reminder set! (${rawTime})💎`, {
-    reply_to_message_id: ctx.message.message_id,
-  });
+  const message = await ctx.reply(
+    `Reminder set! \nI'll remind you in ${convertTime(time)}`,
+    {
+      reply_to_message_id: ctx.message.message_id,
+    }
+  );
   setTimeout(() => {
     ctx.api
       .deleteMessage(ctx.message.chat.id, message.message_id)
@@ -44,6 +59,6 @@ bot.hears(test, async (ctx) => {
   }, time);
 });
 
-bot.catch((error) => console.error(error.message));
+bot.catch((error: Error) => console.error(error.message));
 
 bot.start();

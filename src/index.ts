@@ -21,20 +21,20 @@ bot.hears(test, async (ctx) => {
     .replace(/h|hr/g, "hour");
   const time = parseTime(rawTime);
   if (!time) return;
-  await ctx.reply(`Reminder set! 💎`, {
+  const message = await ctx.reply(`Reminder set! 💎`, {
     reply_to_message_id: ctx.message.message_id,
   });
-  setTimeout(async () => {
-    try {
-      await ctx.reply(
-        `Here is your reminder! @${ctx.message.from?.username}⏰`,
-        {
-          reply_to_message_id: ctx.message.reply_to_message?.message_id,
-        }
-      );
-    } catch (error) {
-      console.log((error as Error).message);
-    }
+  setTimeout(() => {
+    ctx.api
+      .deleteMessage(ctx.message.chat.id, message.message_id)
+      .catch(() => {});
+  }, 10 * 1000);
+  setTimeout(() => {
+    ctx
+      .reply(`Here is your reminder! @${ctx.message.from?.username}⏰`, {
+        reply_to_message_id: ctx.message.reply_to_message?.message_id,
+      })
+      .catch((error: Error) => console.log(error.message));
   }, time);
 });
 

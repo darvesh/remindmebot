@@ -27,7 +27,7 @@ bot.hears(test, async (ctx) => {
     .replace(/h|hr/g, "hour");
   const time = parseTime(rawTime);
   if (!time) return;
-  const message = await ctx.reply(`Reminder set! (${time})💎`, {
+  const message = await ctx.reply(`Reminder set! (${rawTime})💎`, {
     reply_to_message_id: ctx.message.message_id,
   });
   setTimeout(() => {

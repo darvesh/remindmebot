@@ -22,9 +22,9 @@ bot.hears(test, async (ctx) => {
   const rawTime = ctx.message.text
     .substring(10)
     .replace(/d/g, "day")
-    .replace(/m|min/g, "minute")
-    .replace(/s|sec/g, "second")
-    .replace(/h|hr/g, "hour");
+    .replace(/\s+?(m|min)/g, " minute")
+    .replace(/\s+?(s|sec)/g, " second")
+    .replace(/\s+?(h|hr)/g, " hour");
   const time = parseTime(rawTime);
   if (!time) return;
   const message = await ctx.reply(`Reminder set! (${rawTime})💎`, {

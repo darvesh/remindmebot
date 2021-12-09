@@ -11,6 +11,8 @@ const test =
 bot.hears(test, async (ctx) => {
   if (!ctx.message?.text) return;
   if (!ctx.message.from?.username) return;
+  if (!ctx.message.reply_to_message?.message_id)
+    return ctx.reply("Please reply to a message!");
   const rawTime = ctx.message.text
     .substring(10)
     .replace(/d/g, "day")
@@ -27,7 +29,7 @@ bot.hears(test, async (ctx) => {
       await ctx.reply(
         `Here is your reminder! @${ctx.message.from?.username}⏰`,
         {
-          reply_to_message_id: ctx.message.message_id,
+          reply_to_message_id: ctx.message.reply_to_message?.message_id,
         }
       );
     } catch (error) {

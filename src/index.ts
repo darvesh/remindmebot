@@ -11,8 +11,14 @@ const test =
 bot.hears(test, async (ctx) => {
   if (!ctx.message?.text) return;
   if (!ctx.message.from?.username) return;
-  if (!ctx.message.reply_to_message?.message_id)
-    return ctx.reply("Please reply to a message!");
+  if (!ctx.message.reply_to_message?.message_id) {
+    const message = await ctx.reply("Please reply to a message!");
+    setTimeout(() => {
+      ctx.api
+        .deleteMessage(ctx.message.chat.id, message.message_id)
+        .catch(() => {});
+    }, 10 * 1000);
+  }
   const rawTime = ctx.message.text
     .substring(10)
     .replace(/d/g, "day")
@@ -21,7 +27,7 @@ bot.hears(test, async (ctx) => {
     .replace(/h|hr/g, "hour");
   const time = parseTime(rawTime);
   if (!time) return;
-  const message = await ctx.reply(`Reminder set! 💎`, {
+  const message = await ctx.reply(`Reminder set! (${time})💎`, {
     reply_to_message_id: ctx.message.message_id,
   });
   setTimeout(() => {

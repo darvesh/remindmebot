@@ -20,7 +20,6 @@
     "typeorm": "^0.2.41"
   },
   "devDependencies": {
-    "@types/ms": "^0.7.31",
     "@types/node": "^16.11.12"
   }
 }

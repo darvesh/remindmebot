@@ -1,64 +1,83 @@
 import { Bot } from "grammy";
-import parseTime from "human-interval";
-import parseMs from "parse-ms";
+import rawTimeToTimestamp from "human-interval";
 
-import { TOKEN } from "./config.js";
+import { connectToDb, Reminder } from "./db.js";
+import { TOKEN, SCHEDULER_TIME } from "./config.js";
+import { convertTime, processTimeString } from "./util.js";
+import { PATTERN, MESSAGE_DELETE_TIME } from "./constant.js";
+import { checkBacklogs, runScheduler, sendReminder } from "./helper.js";
 
 const bot = new Bot(TOKEN);
 
-const pattern =
-  /^!remindme\s(\d{1,5}(\.\d{1,3})?\s?(s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days)\s?)+$/;
+const connection = await connectToDb();
+const reminderRepo = connection.getRepository(Reminder);
 
-const convertTime = (num: number) => {
-  const t = parseMs(num);
+//check if there is any backlogs and notify user that bot missed reminders
+await checkBacklogs(bot, reminderRepo);
 
-  const k = `${t.days ? `${t.days} day(s) ` : ""}${
-    t.hours ? `${t.hours} hour(s) ` : ""
-  }${t.minutes ? `${t.minutes} minute(s) ` : ""}${
-    t.seconds ? `${t.seconds} second(s) ` : ""
-  }`;
-  return k;
-};
+// every 5 minutes, pick up all reminders from the db for the next 5 minutes
+// and schedule it to send
+runScheduler(bot, reminderRepo);
 
-bot.hears(pattern, async (ctx) => {
-  if (!ctx.message?.text) return;
-  if (!ctx.message.from?.username) return;
+bot.hears(PATTERN, async (ctx) => {
+  // Ignore the message if these conditions are not met.
+  if (!ctx.message?.text || !ctx.message.from?.username) return;
+  // If the user hasn't replied any message, notify the user that they have to reply to a message
+  // then delete the message after 10 seconds
   if (!ctx.message.reply_to_message?.message_id) {
     const message = await ctx.reply("Please reply to a message!");
     setTimeout(() => {
       ctx.api
         .deleteMessage(ctx.message.chat.id, message.message_id)
         .catch(() => {});
-    }, 10 * 1000);
+    }, MESSAGE_DELETE_TIME);
+    return;
   }
-  const rawTime = ctx.message.text
-    .substring(10)
-    .replace(/d/g, "day")
-    .replace(/m|min/g, "minute")
-    .replace(/s|sec/g, "second")
-    .replace(/h|hr/g, "hour");
-  const time = parseTime(rawTime);
-  if (!time) return;
+
+  const chatId = ctx.message.chat.id;
+  const username = ctx.message.from.username;
+  const messageId = ctx.message.reply_to_message.message_id;
+
+  const rawTime = processTimeString(ctx.message.text);
+  const timestamp = rawTimeToTimestamp(rawTime);
+  // unlikely to happen but I'll have a check anyway
+  if (!timestamp) {
+    return ctx.reply(
+      "I didn't understand when to remind you. Please specify the time using the correct format!",
+      {
+        reply_to_message_id: messageId,
+      }
+    );
+  }
+  //send a confirmation message to user with parsed time that reminder has been successfully set.
   const message = await ctx.reply(
-    `Reminder set! \nI'll remind you in ${convertTime(time)}`,
+    `I'll remind you in ${convertTime(timestamp)}`,
     {
-      reply_to_message_id: ctx.message.message_id,
+      reply_to_message_id: messageId,
     }
   );
+  //delete the confirmation message after TEN_SECONDS
   setTimeout(() => {
-    ctx.api
-      .deleteMessage(ctx.message.chat.id, message.message_id)
-      .catch(() => {});
-  }, 10 * 1000);
-  setTimeout(() => {
-    ctx
-      .reply(`Here is your reminder! @${ctx.message.from?.username}⏰`, {
-        reply_to_message_id: ctx.message.reply_to_message?.message_id,
-      })
-      .catch((error: Error) => console.log(error.message));
-  }, time);
+    ctx.api.deleteMessage(chatId, message.message_id).catch(() => {});
+  }, MESSAGE_DELETE_TIME);
+
+  // If message needs to be sent within 5 minutes, don't save it in the db, just schedule it
+  if (timestamp < SCHEDULER_TIME)
+    return setTimeout(() => {
+      sendReminder(bot, { chatId, messageId, username });
+    }, timestamp);
+
+  // Otherwise save it in the db to pick it up in the next batch
+  await reminderRepo
+    .insert({
+      chatId,
+      messageId,
+      username,
+      time: Date.now() + timestamp,
+    })
+    .catch(console.error);
 });
 
 bot.catch((error: Error) => console.error(error.message));
 
-bot.start();
+bot.start({ onStart: () => "Bot started!" });

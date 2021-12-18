@@ -2,7 +2,7 @@ import { Bot } from "grammy";
 import rawTimeToTimestamp from "human-interval";
 
 import { PATTERN } from "./constant.js";
-import { commands } from "./commands.js";
+import { commands } from "./command.js";
 import { connectToDb, Reminder } from "./db.js";
 import { TOKEN, SCHEDULER_TIME } from "./config.js";
 import { convertTime, processTimeString } from "./util.js";
@@ -15,7 +15,26 @@ const reminderRepo = connection.getRepository(Reminder);
 
 //start and help commands
 Object.entries(commands).map(([command, message]) => {
-	bot.command(command, ctx => ctx.reply(message, { parse_mode: "HTML" }));
+	bot.command(
+		command,
+		async ctx =>
+			await ctx
+				.reply(message, {
+					parse_mode: "HTML",
+					disable_web_page_preview: true,
+				})
+				.then(message => {
+					//delete the message if it's not a direct message to bot
+					if (ctx.message?.chat.id && ctx.message.chat.type !== "private")
+						setTimeout(
+							() =>
+								bot.api
+									.deleteMessage(ctx.message.chat.id, message.message_id)
+									.catch((error: Error) => console.trace(error)),
+							25 * 1000,
+						);
+				}),
+	);
 });
 
 //check if there is any backlogs and notify user that bot missed reminders
@@ -53,12 +72,9 @@ bot.hears(PATTERN, async ctx => {
 		);
 	}
 	//send a confirmation message to user with parsed time that reminder has been successfully set.
-	const message = await ctx.reply(
-		`I'll remind you in ${convertTime(timestamp)}`,
-		{
-			reply_to_message_id: messageId,
-		},
-	);
+	await ctx.reply(`I'll remind you in ${convertTime(timestamp)}`, {
+		reply_to_message_id: messageId,
+	});
 
 	// If message needs to be sent within 5 minutes, don't save it in the db, just schedule it
 	if (timestamp < SCHEDULER_TIME)

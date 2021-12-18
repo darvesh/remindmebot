@@ -67,7 +67,7 @@ bot.hears(PATTERN, async ctx => {
 		return ctx.reply(
 			"I didn't understand when to remind you. Please specify the time using the correct format!",
 			{
-				reply_to_message_id: messageId,
+				reply_to_message_id: ctx.message.message_id,
 			},
 		);
 	}

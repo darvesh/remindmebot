@@ -58,10 +58,6 @@ bot.hears(PATTERN, async (ctx) => {
       reply_to_message_id: messageId,
     }
   );
-  //delete the confirmation message after TEN_SECONDS
-  setTimeout(() => {
-    ctx.api.deleteMessage(chatId, message.message_id).catch(() => {});
-  }, MESSAGE_DELETE_TIME);
 
   // If message needs to be sent within 5 minutes, don't save it in the db, just schedule it
   if (timestamp < SCHEDULER_TIME)

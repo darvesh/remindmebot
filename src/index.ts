@@ -1,10 +1,10 @@
 import { Bot } from "grammy";
 import rawTimeToTimestamp from "human-interval";
 
+import { PATTERN } from "./constant.js";
 import { connectToDb, Reminder } from "./db.js";
 import { TOKEN, SCHEDULER_TIME } from "./config.js";
 import { convertTime, processTimeString } from "./util.js";
-import { PATTERN, MESSAGE_DELETE_TIME } from "./constant.js";
 import { checkBacklogs, runScheduler, sendReminder } from "./helper.js";
 
 const bot = new Bot(TOKEN);
@@ -25,14 +25,9 @@ bot.hears(PATTERN, async ctx => {
 	// If the user hasn't replied any message, notify the user that they have to reply to a message
 	// then delete the message after 10 seconds
 	if (!ctx.message.reply_to_message?.message_id) {
-		const message = await ctx.reply("Please reply to a message!", {
+		await ctx.reply("Please reply to a message!", {
 			reply_to_message_id: ctx.message.message_id,
 		});
-		setTimeout(() => {
-			ctx.api
-				.deleteMessage(ctx.message.chat.id, message.message_id)
-				.catch(() => {});
-		}, MESSAGE_DELETE_TIME);
 		return;
 	}
 

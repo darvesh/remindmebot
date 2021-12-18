@@ -1,3 +1,5 @@
+//Yes, I know about template literals.
+//I don't prefer to use it here to reduce line width
 export const commands = {
 	start:
 		"<b>Reddit-like !remindme function for groups!</b> \n" +
@@ -5,7 +7,7 @@ export const commands = {
 		"Bot written by: @solooo7 \nSource: https://github.com/darvesh/remindmebot\n" +
 		"Support me: https://www.buymeacoffee.com/darvesh",
 	helpme:
-		" - Add me to a group. \n- Reply to a message \n- Send <code>!remindme number&lt;d|day|days|hours|hour|h|minutes|minute|m|seconds|second|s&gt; ...</code>\n\n" +
+		" - Add me to a group. \n- Send a message using the format below replying to a message \n<code>!remindme number&lt;d|day|days|hours|hour|h|minutes|minute|m|seconds|second|s&gt; ...</code>\n\n" +
 		"Examples:\n" +
 		"<code>!remindme 20d2h\n" +
 		"!remindme 2minutes3seconds\n" +

@@ -73,9 +73,9 @@ export const runScheduler = (
 			for (const reminder of reminders) {
 				setTimeout(
 					() =>
-						sendReminder(bot, reminder).then(() =>
-							reminderRepo.delete({ id: reminder.id }),
-						),
+						sendReminder(bot, reminder)
+							.then(() => reminderRepo.delete({ id: reminder.id }))
+							.catch((error: Error) => console.trace(error.message)),
 					reminder.time - Date.now(),
 				);
 			}

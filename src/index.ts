@@ -2,6 +2,7 @@ import { Bot } from "grammy";
 import rawTimeToTimestamp from "human-interval";
 
 import { PATTERN } from "./constant.js";
+import { commands } from "./commands.js";
 import { connectToDb, Reminder } from "./db.js";
 import { TOKEN, SCHEDULER_TIME } from "./config.js";
 import { convertTime, processTimeString } from "./util.js";
@@ -11,6 +12,11 @@ const bot = new Bot(TOKEN);
 
 const connection = await connectToDb();
 const reminderRepo = connection.getRepository(Reminder);
+
+//start and help commands
+Object.entries(commands).map(([command, message]) => {
+	bot.command(command, ctx => ctx.reply(message, { parse_mode: "HTML" }));
+});
 
 //check if there is any backlogs and notify user that bot missed reminders
 await checkBacklogs(bot, reminderRepo);

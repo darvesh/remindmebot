@@ -4,7 +4,7 @@ import rawTimeToTimestamp from "human-interval";
 import { PATTERN } from "./constant.js";
 import { commands } from "./command.js";
 import { connectToDb, Reminder } from "./db.js";
-import { TOKEN, SCHEDULER_TIME } from "./config.js";
+import { TOKEN, SCHEDULER_TIME,MY_USER_ID } from "./config.js";
 import { convertTime, processTimeString } from "./util.js";
 import { checkBacklogs, runScheduler, sendReminder } from "./helper.js";
 
@@ -92,6 +92,13 @@ bot.hears(PATTERN, async ctx => {
 		})
 		.catch(console.error);
 });
+
+bot
+	.filter(ctx => ctx.chat?.type === "private" && ctx.from?.id === MY_USER_ID)
+	.command("stat", async ctx => {
+		const stat = await reminderRepo.count();
+		await ctx.reply(`Pending reminders: ${stat}`);
+	});
 
 bot.catch((error: Error) => console.error(error.message));
 

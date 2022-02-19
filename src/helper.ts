@@ -51,7 +51,7 @@ export const checkBacklogs = async (
 							reply_to_message_id: reminder.messageId,
 						},
 					)
-					.then(() => reminderRepo.delete({ id: reminder.id })),
+					.finally(() => reminderRepo.delete({ id: reminder.id })),
 			),
 		);
 	} catch (error) {
@@ -74,8 +74,8 @@ export const runScheduler = (
 				setTimeout(
 					() =>
 						sendReminder(bot, reminder)
-							.then(() => reminderRepo.delete({ id: reminder.id }))
-							.catch((error: Error) => console.trace(error.message)),
+							.catch((error: Error) => console.trace(error.message))
+							.finally(() => reminderRepo.delete({ id: reminder.id })),
 					reminder.time - Date.now(),
 				);
 			}

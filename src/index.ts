@@ -73,9 +73,12 @@ bot.hears(PATTERN, async ctx => {
 		);
 	}
 	//send a confirmation message to user with parsed time that reminder has been successfully set.
-	await ctx.reply(`I'll remind you in ${convertTime(timestamp)}`, {
-		reply_to_message_id: messageId,
-	});
+	await ctx.reply(
+		`I'll remind you(@${ctx.from.username ?? ""}) in ${convertTime(timestamp)}`,
+		{
+			reply_to_message_id: messageId,
+		},
+	);
 
 	// If message needs to be sent within 5 minutes, don't save it in the db, just schedule it
 	const fiveMinutes = 5 * 60 * 1000;

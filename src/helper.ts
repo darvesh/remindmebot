@@ -3,6 +3,7 @@ import typeorm from "typeorm";
 
 import { Reminder } from "./db.js";
 import { SCHEDULER_TIME } from "./config.js";
+import { calculateWindow } from "./util.js";
 
 /**
  * Sends reminder message to user and logs if it fails
@@ -36,9 +37,10 @@ export const checkBacklogs = async (
 	reminderRepo: typeorm.Repository<Reminder>,
 ) => {
 	try {
+		const window = calculateWindow(SCHEDULER_TIME);
 		const reminders = await reminderRepo.find({
 			where: {
-				time: typeorm.LessThan(Date.now()),
+				time: typeorm.LessThan(window.from),
 			},
 		});
 		await Promise.allSettled(
@@ -65,9 +67,11 @@ export const runScheduler = (
 ) => {
 	setInterval(async () => {
 		try {
+			const now = new Date();
+			const window = calculateWindow(SCHEDULER_TIME, new Date(now.getTime()));
 			const reminders = await reminderRepo.find({
 				where: {
-					time: typeorm.LessThan(Date.now() + SCHEDULER_TIME),
+					time: typeorm.Between(window.from, window.to),
 				},
 			});
 			for (const reminder of reminders) {
@@ -76,11 +80,11 @@ export const runScheduler = (
 						sendReminder(bot, reminder)
 							.catch((error: Error) => console.trace(error.message))
 							.finally(() => reminderRepo.delete({ id: reminder.id })),
-					reminder.time - Date.now(),
+					reminder.time - now.getTime(),
 				);
 			}
 		} catch (error) {
 			console.error(error);
 		}
-	}, SCHEDULER_TIME);
+	}, SCHEDULER_TIME * 60 * 1000);
 };

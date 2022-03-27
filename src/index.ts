@@ -4,7 +4,7 @@ import rawTimeToTimestamp from "human-interval";
 import { PATTERN } from "./constant.js";
 import { commands } from "./command.js";
 import { connectToDb, Reminder } from "./db.js";
-import { TOKEN, SCHEDULER_TIME,MY_USER_ID } from "./config.js";
+import { TOKEN, SCHEDULER_TIME, MY_USER_ID } from "./config.js";
 import { convertTime, processTimeString } from "./util.js";
 import { checkBacklogs, runScheduler, sendReminder } from "./helper.js";
 
@@ -45,6 +45,7 @@ await checkBacklogs(bot, reminderRepo);
 runScheduler(bot, reminderRepo);
 
 bot.hears(PATTERN, async ctx => {
+	const date = new Date();
 	// Ignore the message if these conditions are not met.
 	if (!ctx.message?.text || !ctx.message.from?.username) return;
 	// If the user hasn't replied any message, notify the user that they have to reply to a message
@@ -77,10 +78,12 @@ bot.hears(PATTERN, async ctx => {
 	});
 
 	// If message needs to be sent within 5 minutes, don't save it in the db, just schedule it
-	if (timestamp < SCHEDULER_TIME)
-		return setTimeout(() => {
-			sendReminder(bot, { chatId, messageId, username });
-		}, timestamp);
+	const fiveMinutes = 5 * 60 * 1000;
+	if (timestamp < fiveMinutes)
+		return setTimeout(
+			() => sendReminder(bot, { chatId, messageId, username }),
+			timestamp,
+		);
 
 	// Otherwise save it in the db to pick it up in the next batch
 	await reminderRepo
@@ -88,7 +91,7 @@ bot.hears(PATTERN, async ctx => {
 			chatId,
 			messageId,
 			username,
-			time: Date.now() + timestamp,
+			time: date.getTime() + timestamp,
 		})
 		.catch(console.error);
 });

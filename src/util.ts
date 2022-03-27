@@ -1,5 +1,5 @@
-import { addMinutes, differenceInMinutes, subMinutes } from "date-fns";
 import parseMs from "parse-ms";
+import { addMinutes, subMinutes } from "date-fns";
 
 /** Neatly formats timestamp to days, hour, minute, second * */
 export const convertTime = (timestamp: number) => {

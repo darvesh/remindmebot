@@ -1,4 +1,0 @@
-dist
-node_modules
-src/config.ts
-database.sql*

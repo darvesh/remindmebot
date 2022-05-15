@@ -8,28 +8,26 @@ import { BOT_TOKEN, USER_ID } from "./config.ts";
 import { processTime, formatTime, wait, escapeHTML } from "./util.ts";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
-const PATTERN = /^\/remindme\s([\d\w \t]+)(?:\n(.+))?$/;
-const TIME_PATTERN =
-	/^(\d{1,3}(\.\d{1,3})? ?(s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days) ?)+$/g;
+
+const PATTERN =
+	/^\/remindme\s(\d{1,3}(?:\.\d{1,3})? ?(?:s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days) ?)+(?:\n([\s\w\d/\.&`~$#@%!\\{}()\*\-+=_]+))?$/;
 
 const bot = new Bot(BOT_TOKEN);
 
 Object.entries(commands).forEach(([key, value]) =>
-	bot.command(key, (ctx) =>
-		ctx
-			.reply(value, { parse_mode: "HTML", disable_web_page_preview: true })
-			.catch()
+	bot.command(
+		key,
+		async (ctx) =>
+			await ctx.reply(value, {
+				parse_mode: "HTML",
+				disable_web_page_preview: true,
+			})
 	)
 );
 
 bot.hears(PATTERN, async (ctx) => {
 	if (!ctx.from?.username) return;
 	const [, rawTime, message] = ctx.match;
-
-	if (!rawTime.match(TIME_PATTERN))
-		return await ctx.reply("Invalid time", {
-			reply_to_message_id: ctx.message?.message_id,
-		});
 
 	if (!message && !ctx.message?.reply_to_message?.message_id) {
 		return await ctx.reply(
@@ -111,24 +109,23 @@ setInterval(() => {
 	)
 		.toArray()
 		.then((reminders) =>
-			Promise.allSettled(
-				reminders.map((reminder) =>
-					wait(reminder.date - now)
-						.then(() =>
-							bot.api.sendMessage(
-								reminder.chatId,
-								`Here is your reminder!${" @" + reminder.username}⏰${
-									reminder.message ? `\n${escapeHTML(reminder.message)}` : ""
-								}`,
-								{
-									reply_to_message_id:
-										reminder.replyMessageId || reminder.messageId,
-									parse_mode: "HTML",
-								}
-							)
+			reminders.map((reminder) =>
+				wait(reminder.date - now)
+					.then(() =>
+						bot.api.sendMessage(
+							reminder.chatId,
+							`Here is your reminder!${" @" + reminder.username}⏰${
+								reminder.message ? `\n${escapeHTML(reminder.message)}` : ""
+							}`,
+							{
+								reply_to_message_id:
+									reminder.replyMessageId || reminder.messageId,
+								parse_mode: "HTML",
+							}
 						)
-						.finally(() => Reminder.deleteOne({ _id: reminder._id }))
-				)
+					)
+					.catch()
+					.finally(() => Reminder.deleteOne({ _id: reminder._id }))
 			)
 		)
 		.catch();

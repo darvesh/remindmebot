@@ -3,14 +3,12 @@ import interval from "https://esm.sh/human-interval@2.0.1";
 import { Bot } from "https://deno.land/x/grammy@v1.8.3/mod.ts";
 
 import { Reminder } from "./db.ts";
+import { PATTERN } from "./constant.ts";
 import { commands } from "./command.ts";
 import { BOT_TOKEN, USER_ID } from "./config.ts";
 import { processTime, formatTime, wait, escapeHTML } from "./util.ts";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
-
-const PATTERN =
-	/^\/remindme\s(\d{1,3}(?:\.\d{1,3})? ?(?:s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days) ?)+(?:\n([\s\w\d/\.&`~$#@%!\\{}()\*\-+=_]+))?$/;
 
 const bot = new Bot(BOT_TOKEN);
 

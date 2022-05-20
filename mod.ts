@@ -90,6 +90,15 @@ bot
 		await ctx.reply(`Pending reminders: ${stat}`);
 	});
 
+bot
+	.filter((ctx) => ctx?.from?.id === USER_ID)
+	.command("d", async (ctx) => {
+		if (ctx.message?.reply_to_message?.message_id)
+			await ctx.api
+				.deleteMessage(ctx.chat.id, ctx.message?.reply_to_message?.message_id)
+				.catch();
+	});
+
 bot.catch(console.error);
 
 bot.start({

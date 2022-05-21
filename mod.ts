@@ -68,7 +68,7 @@ bot.hears(PATTERN, async (ctx) => {
 							parse_mode: "HTML",
 						}
 					)
-					.catch(),
+					.catch(() => {}),
 			time
 		);
 	}
@@ -96,7 +96,7 @@ bot
 		if (ctx.message?.reply_to_message?.message_id)
 			await ctx.api
 				.deleteMessage(ctx.chat.id, ctx.message?.reply_to_message?.message_id)
-				.catch();
+				.catch(() => {});
 	});
 
 bot.catch(console.error);
@@ -131,9 +131,11 @@ setInterval(() => {
 							}
 						)
 					)
-					.catch()
-					.finally(() => Reminder.deleteOne({ _id: reminder._id }))
+					.catch(() => {})
+					.finally(() =>
+						Reminder.deleteOne({ _id: reminder._id }).catch(() => {})
+					)
 			)
 		)
-		.catch();
+		.catch(() => {});
 }, FIVE_MINUTES);

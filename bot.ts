@@ -19,8 +19,16 @@ const QUEUE_DELAY_MS =
 	(Number(Deno.env.get("QUEUE_DELAY_IN_SECONDS")) || 0) * 1000;
 
 const bot = new Bot(BOT_TOKEN);
-bot.command("start", (ctx) => ctx.reply(commands.start));
-bot.command("help", (ctx) => ctx.reply(commands.helpme));
+bot.command("start", (ctx) =>
+	ctx.reply(commands.start, {
+		parse_mode: "HTML",
+	})
+);
+bot.command("help", (ctx) =>
+	ctx.reply(commands.helpme, {
+		parse_mode: "HTML",
+	})
+);
 
 bot
 	.filter((ctx) => ctx.hasChatType(["group", "supergroup", "private"]))
@@ -114,6 +122,7 @@ async function sendMessage(reminder: Reminder) {
 		message ? `\n\n${message}` : ""
 	}`;
 	await bot.api.sendMessage(chatId, replyMessage, {
+		parse_mode: "HTML",
 		...(replyMessageId && {
 			reply_parameters: {
 				message_id: replyMessageId,

@@ -1,8 +1,4 @@
 import { type TimeComponents } from "https://esm.sh/parse-ms@3.0.0";
-
-export const wait = (time: number) =>
-	new Promise((resolve) => setTimeout(resolve, time));
-
 export const processTime = (str: string) =>
 	str
 		.trim()
@@ -29,3 +25,9 @@ const escapables = {
 };
 export const escapeHTML = (s: string) =>
 	s.replace(/<|>|&|"|'/g, (r) => escapables[r as keyof typeof escapables] || r);
+
+export const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+	dateStyle: "full",
+	timeStyle: "medium",
+	timeZone: "UTC",
+});

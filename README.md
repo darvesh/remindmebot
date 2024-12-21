@@ -31,12 +31,3 @@ Buy Golang and delete it
 
 ## <b>Dependencies</b>
 1. Deno
-2. MongoDB
-<hr/>
-
-## <b>How to run</b> 
-1. `cp example.config.ts config.ts`
-2. Fill in `config.ts`
-3. `deno run --allow-net mod.ts //whitelist URLs if you want` 
-
-<hr/>

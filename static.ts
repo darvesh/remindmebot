@@ -17,3 +17,6 @@ export const commands = {
 		"<code>/remindme 2h\nBuy Golang and delete it</code>\n\n" +
 		"Supports: <code>s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days</code>",
 };
+
+export const PATTERN =
+	/^\/remindme\s((?:\d{1,3}(?:\.\d{1,3})? ?(?:s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days) ?)+)(?:\n([\s\w\d/\.&`~$#@%!\\{}()\*\-+=_\[\]^?<>'\"]+))?$/;

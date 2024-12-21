@@ -2,8 +2,7 @@ import {
 	equal,
 	assertStrictEquals,
 } from "https://deno.land/std@0.140.0/testing/asserts.ts";
-
-import { PATTERN } from "../constant.ts";
+import { PATTERN } from "../static.ts";
 
 Deno.test("time 1", () => {
 	const m = "/remindme 1h";

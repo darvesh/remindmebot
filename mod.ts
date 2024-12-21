@@ -2,12 +2,12 @@ import { webhookCallback } from "https://deno.land/x/grammy@v1.33.0/mod.ts";
 import { bot } from "./bot.ts";
 
 const handleUpdate = webhookCallback(bot, "std/http");
-const SECRET = Deno.env.get("SECRET");
 
 Deno.serve(async (req) => {
+	const url = new URL(req.url);
+	console.log(req.method, url.pathname, bot.token, url.pathname.slice(1));
 	if (req.method === "POST") {
-		const url = new URL(req.url);
-		if (url.pathname.slice(1) === SECRET) {
+		if (url.pathname.slice(1) === bot.token) {
 			try {
 				return await handleUpdate(req);
 			} catch (err) {

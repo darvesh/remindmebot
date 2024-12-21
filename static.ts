@@ -13,7 +13,7 @@ export const commands = {
 		"<code>/remindme 60s1m //will remind you in 2 minutes</code>\n\n" +
 		"[<b>By writing a message</b>]\n" +
 		// "--------------------------------\n" +
-		"<code>/remindme 1h\nRewrite TypeScript in Rust</code>\n\n" +
+		"<code>/remindme 1h\nRewrite TypeScript in Zig</code>\n\n" +
 		"<code>/remindme 2h\nBuy Golang and delete it</code>\n\n" +
 		"Supports: <code>s|sec|m|min|h|hr|d|day|second|seconds|minute|minutes|hour|hours|day|days</code>",
 };
